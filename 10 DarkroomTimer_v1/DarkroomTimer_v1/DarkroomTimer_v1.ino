@@ -36,8 +36,8 @@
 #define MODE_MENU_FLTR       40 // filter
 #define MODE_MENU_DIST       50 // distance
 #define MODE_MENU_STRP       60 // test strip generator
-#define MODE_MENU_PRMS       70 // parameters
 
+#define MODE_MENU_PRMS       70 // parameters
 #define MODE_MENU_PRMS_BRGT  71 // parameters
 #define MODE_MENU_PRMS_BIPA  72 // parameters
 #define MODE_MENU_PRMS_BIPB  73 // parameters
@@ -116,6 +116,13 @@ const uint8_t SEG_BRGT[] = {LETTER_B, LETTER_R, LETTER_G, LETTER_T};
 const uint8_t SEG_BACK[] = {LETTER_B, LETTER_A, LETTER_C, LETTER_K};
 const uint8_t SEG_FSTP[] = {LETTER_F, LETTER_S, LETTER_T, LETTER_P};
 const uint8_t SEG_FLTR[] = {LETTER_F, LETTER_L, LETTER_T, LETTER_R};
+
+const uint8_t SEG_DIST[] = {LETTER_D, LETTER_I, LETTER_S, LETTER_T};
+const uint8_t SEG_STRP[] = {LETTER_S, LETTER_T, LETTER_R, LETTER_P};
+const uint8_t SEG_PRMS[] = {LETTER_P, LETTER_R, LETTER_M, LETTER_S};
+
+const uint8_t SEG_BIP1[] = {LETTER_B, LETTER_I, LETTER_P, SEG_DIGITS[1]};
+
 //SEG_FLTR
 
 TM1637Display display_left(PIN_LEFT_DISPLAY_CLK, PIN_LEFT_DISPLAY_DIO);
@@ -147,7 +154,7 @@ int submode;
 unsigned long currMillis, lastMillis;
 
 
-bool settings_beeps_startup = false;
+bool settings_beeps_startup = true;
 bool settings_beep1 = true;
 bool settings_beep2 = true;
 bool settings_beep3 = true;
@@ -405,26 +412,47 @@ void actionRotary(int dir) {
     ////    #define MODE_MENU_STRP       9 // test strip generator
     ////    #define MODE_MENU_PRMS      10 // parameters
 
-    // to mode back
-    if (dir > 0) {
-      if (submode == MODE_MENU_MODE) {
-        submode = MODE_MENU_FSTP;
-        display_right.setSegments(SEG_FSTP);
-      } else if (submode == MODE_MENU_FSTP) {
-        submode = MODE_MENU_FLTR;
-        display_right.setSegments(SEG_FLTR);
-      }
-    } else if (dir < 0) {
-      if (submode == MODE_MENU_FSTP) {
-        submode = MODE_MENU_MODE;
-        display_right.setSegments(SEG_MODE);
-      } else if (submode == MODE_MENU_FLTR) {
-        submode = MODE_MENU_FSTP;
-        display_right.setSegments(SEG_FSTP);
-      }
-
-
+    // to MODE_MENU_MODE
+    if ((dir < 0) & (submode == MODE_MENU_FSTP)) {
+      submode = MODE_MENU_MODE;
+      display_right.setSegments(SEG_MODE);
     }
+
+    // to MODE_MENU_FSTP
+    else if (((dir > 0) and (submode == MODE_MENU_MODE)) or ((dir < 0) and (submode == MODE_MENU_FLTR))) {
+      submode = MODE_MENU_FSTP;
+      display_right.setSegments(SEG_FSTP);
+    }
+
+    // to MODE_MENU_FLTR
+    else if (((dir > 0) and (submode == MODE_MENU_FSTP)) or ((dir < 0) and (submode == MODE_MENU_DIST))) {
+      submode = MODE_MENU_FLTR;
+      display_right.setSegments(SEG_FLTR);
+    }
+
+    // to MODE_MENU_DIST
+    else if (((dir > 0) and (submode == MODE_MENU_FLTR)) or ((dir < 0) and (submode == MODE_MENU_STRP))) {
+      submode = MODE_MENU_DIST;
+      display_right.setSegments(SEG_DIST);
+    }
+
+    // to MODE_MENU_STRP
+    else if (((dir > 0) and (submode == MODE_MENU_DIST)) or ((dir < 0) and (submode == MODE_MENU_PRMS))) {
+      submode = MODE_MENU_STRP;
+      display_right.setSegments(SEG_STRP);
+    }
+
+    // to MODE_MENU_PRMS
+    else if ((dir > 0) and (submode == MODE_MENU_STRP)) {
+      submode = MODE_MENU_PRMS;
+      display_right.setSegments(SEG_PRMS);
+    }
+
+    else {
+      beep4();
+    }
+
+
   } else if (mode == MODE_MENU_FSTP) {
     int smax = sizeof(F_STOPS) / sizeof(F_STOPS[0]);
     if (dir > 0) {
@@ -495,15 +523,6 @@ void actionBigRedButton(boolean pushed) {
       | (mode == MODE_MENU_PRMS)) {
       setMode(MODE_MENU);
 
-
-
-      //
-      //#define MODE_MENU_FSTP       30 // f-stop
-      //#define MODE_MENU_FLTR       40 // filter
-      //#define MODE_MENU_DIST       50 // distance
-      //#define MODE_MENU_STRP       60 // test strip generator
-      //#define MODE_MENU_PRMS       70 // parameters
-      //}
     } else {
       beep4();
     }
