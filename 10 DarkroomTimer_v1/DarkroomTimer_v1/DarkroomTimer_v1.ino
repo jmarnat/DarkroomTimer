@@ -397,7 +397,7 @@ void actionRotary(int dir) {
       varSelectedTime = varSelectedTimeNew;
       beep1();
     } else {
-      beep4();
+      // beep4();
     }
 
     displaySelectedTime();
@@ -448,7 +448,7 @@ void actionRotary(int dir) {
     }
 
     else {
-      beep4();
+      // beep4();
     }
 
 
@@ -460,7 +460,7 @@ void actionRotary(int dir) {
         displayFstop(current_fstop);
         beep1();
       } else {
-        beep4();
+        // beep4();
       }
     } else if (dir < 0) {
       if ((current_fstop - 1) >= 0) {
@@ -468,7 +468,7 @@ void actionRotary(int dir) {
         displayFstop(current_fstop);
         beep1();
       } else {
-        beep4();
+        // beep4();
       }
     }
 
@@ -515,7 +515,7 @@ void actionRotary(int dir) {
     }
 
     else {
-      beep4();
+      // beep4();
     }
 
   } else if (mode == MODE_MENU_PRMS_BRGT) {
@@ -528,12 +528,12 @@ void actionRotary(int dir) {
       displayBrightness();
       beep1();
     } else {
-      beep4();
+      // beep4();
     }
 
 
   } else {
-    beep4();
+    // beep4();
   }
 
 }
