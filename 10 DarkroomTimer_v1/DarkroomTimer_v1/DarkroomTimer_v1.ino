@@ -122,6 +122,9 @@ const uint8_t SEG_STRP[] = {LETTER_S, LETTER_T, LETTER_R, LETTER_P};
 const uint8_t SEG_PRMS[] = {LETTER_P, LETTER_R, LETTER_M, LETTER_S};
 
 const uint8_t SEG_BIP1[] = {LETTER_B, LETTER_I, LETTER_P, SEG_DIGITS[1]};
+const uint8_t SEG_BIP2[] = {LETTER_B, LETTER_I, LETTER_P, SEG_DIGITS[2]};
+const uint8_t SEG_BIP3[] = {LETTER_B, LETTER_I, LETTER_P, SEG_DIGITS[3]};
+const uint8_t SEG_BIP4[] = {LETTER_B, LETTER_I, LETTER_P, SEG_DIGITS[4]};
 
 //SEG_FLTR
 
@@ -153,7 +156,7 @@ int mode = MODE_SETUP;
 int submode;
 unsigned long currMillis, lastMillis;
 
-
+byte settings_brightness = 7;
 bool settings_beeps_startup = true;
 bool settings_beep1 = true;
 bool settings_beep2 = true;
@@ -178,9 +181,6 @@ void setup() {
 
   digitalWrite(PIN_RELAY_RED, HIGH);
 
-  //  lightLast = analogRead(PIN_POT_LIGHT) / 128;
-
-
   Serial.begin(9600);
 
 
@@ -204,8 +204,6 @@ void setup() {
     tone(PIN_PIEZO, 880, 400);
   }
 }
-
-
 
 void lightOn() {
   digitalWrite(PIN_RELAY_RED, LOW);
@@ -299,6 +297,15 @@ void setMode(int newMode) {
     // display_left.setSegments(SEG_MENU);
     displayFstop(current_fstop);
 
+  } else if (mode == MODE_MENU_PRMS) {
+    submode = MODE_MENU_PRMS_BRGT;
+    display_left.setSegments(SEG_PRMS);
+    display_right.setSegments(SEG_BRGT);
+
+  } else if (mode == MODE_MENU_PRMS_BRGT) {
+    display_left.setSegments(SEG_BRGT);
+    displayBrightness();
+    /// display_right.setSegments(displayBrightness);
 
   } else if (mode == MODE_FOCUS) {
     // display_left.setSegments(SEG_MENU);
@@ -345,12 +352,11 @@ void displayDigits(int side, float number, int decimals) {
     // adding digital point
     data[2] = data[2] | SEG_DP;
     if (side == 0) display_left.setSegments(data);
-    else display_right.setSegments(data);
+    else if (side == 1) display_right.setSegments(data);
   }
 }
 
 void displayFstop(int fstop) {
-
   uint8_t data[] = {LETTER_F, 0x00, 0x00, 0x00};
   int smax = sizeof(F_STOPS) / sizeof(F_STOPS[0]);
   if (fstop < smax) {
@@ -365,6 +371,13 @@ void displayFstop(int fstop) {
   }
 }
 
+void displayBrightness() {
+  // settings_brightness
+  display_left.setBrightness(settings_brightness);
+  display_right.setBrightness(settings_brightness);
+  display_left.setSegments(SEG_BRGT);
+  displayDigits(1, settings_brightness + 1, 0);
+}
 
 //void setBrightness(byte val) {
 //  uint8_t data[] = { 0xff, 0xff, 0xff, 0xff };
@@ -372,17 +385,6 @@ void displayFstop(int fstop) {
 //  display.setSegments(data);
 //}
 
-//int getSubMode(mode) {
-////      #define MODE_MENU_MODE       5 // mode time/f-stop
-////    #define MODE_MENU_FSTP       6 // f-stop
-////    #define MODE_MENU_FLTR       7 // filter
-////    #define MODE_MENU_DIST       8 // distance
-////    #define MODE_MENU_STRP       9 // test strip generator
-////    #define MODE_MENU_PRMS      10 // parameters
-//  if (mode == MODE_MENU) {
-//
-//  }
-//}
 
 int selected_menu = 0;
 void actionRotary(int dir) {
@@ -402,50 +404,46 @@ void actionRotary(int dir) {
 
 
   } else if (mode == MODE_MENU) {
-
-
-
-    ////      #define MODE_MENU_MODE       5 // mode time/f-stop
-    ////    #define MODE_MENU_FSTP       6 // f-stop
-    ////    #define MODE_MENU_FLTR       7 // filter
-    ////    #define MODE_MENU_DIST       8 // distance
-    ////    #define MODE_MENU_STRP       9 // test strip generator
-    ////    #define MODE_MENU_PRMS      10 // parameters
-
     // to MODE_MENU_MODE
     if ((dir < 0) & (submode == MODE_MENU_FSTP)) {
       submode = MODE_MENU_MODE;
       display_right.setSegments(SEG_MODE);
+      beep1();
     }
 
     // to MODE_MENU_FSTP
     else if (((dir > 0) and (submode == MODE_MENU_MODE)) or ((dir < 0) and (submode == MODE_MENU_FLTR))) {
       submode = MODE_MENU_FSTP;
       display_right.setSegments(SEG_FSTP);
+      beep1();
     }
 
     // to MODE_MENU_FLTR
     else if (((dir > 0) and (submode == MODE_MENU_FSTP)) or ((dir < 0) and (submode == MODE_MENU_DIST))) {
       submode = MODE_MENU_FLTR;
       display_right.setSegments(SEG_FLTR);
+      beep1();
     }
 
     // to MODE_MENU_DIST
     else if (((dir > 0) and (submode == MODE_MENU_FLTR)) or ((dir < 0) and (submode == MODE_MENU_STRP))) {
       submode = MODE_MENU_DIST;
       display_right.setSegments(SEG_DIST);
+      beep1();
     }
 
     // to MODE_MENU_STRP
     else if (((dir > 0) and (submode == MODE_MENU_DIST)) or ((dir < 0) and (submode == MODE_MENU_PRMS))) {
       submode = MODE_MENU_STRP;
       display_right.setSegments(SEG_STRP);
+      beep1();
     }
 
     // to MODE_MENU_PRMS
     else if ((dir > 0) and (submode == MODE_MENU_STRP)) {
       submode = MODE_MENU_PRMS;
       display_right.setSegments(SEG_PRMS);
+      beep1();
     }
 
     else {
@@ -459,6 +457,7 @@ void actionRotary(int dir) {
       if ((current_fstop + 1) < smax) {
         current_fstop++;
         displayFstop(current_fstop);
+        beep1();
       } else {
         beep4();
       }
@@ -466,10 +465,71 @@ void actionRotary(int dir) {
       if ((current_fstop - 1) >= 0) {
         current_fstop--;
         displayFstop(current_fstop);
+        beep1();
       } else {
         beep4();
       }
     }
+
+  } else if (mode == MODE_MENU_PRMS) {
+    //#define MODE_MENU_PRMS_BRGT  71 // parameters
+    //#define MODE_MENU_PRMS_BIPA  72 // parameters
+    //#define MODE_MENU_PRMS_BIPB  73 // parameters
+    //#define MODE_MENU_PRMS_BIPC  74 // parameters
+    //#define MODE_MENU_PRMS_BIPD  75 // parameters
+
+    // -> MODE_MENU_PRMS_BRGT
+    if ((dir < 0) and (submode == MODE_MENU_PRMS_BIPA)) {
+      submode = MODE_MENU_PRMS_BRGT;
+      display_right.setSegments(SEG_BRGT);
+      beep1();
+    }
+
+    // to MODE_MENU_PRMS_BIPA
+    else if (((dir > 0) and (submode == MODE_MENU_PRMS_BRGT)) or ((dir < 0) and (submode == MODE_MENU_PRMS_BIPB))) {
+      submode = MODE_MENU_PRMS_BIPA;
+      display_right.setSegments(SEG_BIP1);
+      beep1();
+    }
+
+    // to MODE_MENU_PRMS_BIPB
+    else if (((dir > 0) and (submode == MODE_MENU_PRMS_BIPA)) or ((dir < 0) and (submode == MODE_MENU_PRMS_BIPC))) {
+      submode = MODE_MENU_PRMS_BIPB;
+      display_right.setSegments(SEG_BIP2);
+      beep1();
+    }
+
+    // to MODE_MENU_PRMS_BIPC
+    else if (((dir > 0) and (submode == MODE_MENU_PRMS_BIPB)) or ((dir < 0) and (submode == MODE_MENU_PRMS_BIPD))) {
+      submode = MODE_MENU_PRMS_BIPC;
+      display_right.setSegments(SEG_BIP3);
+      beep1();
+    }
+
+    // to MODE_MENU_PRMS_BIPD
+    else if ((dir > 0) and (submode == MODE_MENU_PRMS_BIPC)) {
+      submode = MODE_MENU_PRMS_BIPD;
+      display_right.setSegments(SEG_BIP4);
+      beep1();
+    }
+
+    else {
+      beep4();
+    }
+
+  } else if (mode == MODE_MENU_PRMS_BRGT) {
+    if ((dir > 0) and (settings_brightness < 7)) {
+      settings_brightness ++;
+      displayBrightness();
+      beep1();
+    } else if ((dir < 0) and (settings_brightness > 0)) {
+      settings_brightness--;
+      displayBrightness();
+      beep1();
+    } else {
+      beep4();
+    }
+
 
   } else {
     beep4();
@@ -485,6 +545,10 @@ void actionRotaryButton(boolean pushed) {
     }
 
     else if (mode == MODE_MENU) {
+      setMode(submode);
+    }
+
+    else if (mode == MODE_MENU_PRMS) {
       setMode(submode);
     }
 
@@ -523,7 +587,17 @@ void actionBigRedButton(boolean pushed) {
       | (mode == MODE_MENU_PRMS)) {
       setMode(MODE_MENU);
 
-    } else {
+    }
+
+    else if ((mode == MODE_MENU_PRMS_BRGT)
+             | (mode == MODE_MENU_PRMS_BIPA)
+             | (mode == MODE_MENU_PRMS_BIPB)
+             | (mode == MODE_MENU_PRMS_BIPC)
+             | (mode == MODE_MENU_PRMS_BIPD)) {
+      setMode(MODE_MENU_PRMS);
+    }
+
+    else {
       beep4();
     }
   } else {
