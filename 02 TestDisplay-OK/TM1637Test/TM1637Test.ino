@@ -2,6 +2,9 @@
 #include <TM1637Display.h>
 
 // Module connection pins (Digital Pins)
+#define CLK_L  9
+#define DIO_L 10
+
 #define CLK 11
 #define DIO 12
 
@@ -15,6 +18,7 @@ const uint8_t SEG_DONE[] = {
 	SEG_A | SEG_D | SEG_E | SEG_F | SEG_G            // E
 	};
 
+TM1637Display display_left(CLK_L, DIO_L);
 TM1637Display display(CLK, DIO);
 
 void setup()
