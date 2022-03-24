@@ -156,11 +156,12 @@ int mode = MODE_SETUP;
 int submode;
 unsigned long currMillis, lastMillis;
 
-byte settings_brightness = 7;
+byte settings_brightness = 1;
 bool settings_beeps_startup = true;
 bool settings_beep1 = true;
 bool settings_beep2 = true;
 bool settings_beep3 = true;
+bool settings_beep4 = true;
 
 void setup() {
   pinMode(PIN_ENCODER_BUT, INPUT);
@@ -188,10 +189,10 @@ void setup() {
   varSelectedTime = 2.5;
   varSelectedTimeDecimals = 1;
 
-  display_left.setBrightness(0x0f);
+  display_left.setBrightness(settings_brightness);
   setMode(MODE_SETUP);
 
-  display_right.setBrightness(0x0f);
+  display_right.setBrightness(settings_brightness);
   displaySelectedTime();
 
   if (settings_beeps_startup) {
