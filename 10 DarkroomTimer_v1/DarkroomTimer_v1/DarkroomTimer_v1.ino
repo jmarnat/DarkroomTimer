@@ -163,6 +163,8 @@ bool settings_beep2 = true;
 bool settings_beep3 = true;
 bool settings_beep4 = true;
 
+float timeStep = 0.1;
+
 void setup() {
   pinMode(PIN_ENCODER_BUT, INPUT);
   pinMode(PIN_MIDDLE_BUT, INPUT);
@@ -392,7 +394,7 @@ void actionRotary(int dir) {
   // dir = +1 (clockwise) / -1 (trigo)
 
   if (mode == MODE_SETUP) {
-    float varSelectedTimeNew = varSelectedTime + 1 * dir * 0.5;
+    float varSelectedTimeNew = varSelectedTime + 1 * dir * timeStep;
     if (varSelectedTimeNew > 0) {
       varSelectedTime = varSelectedTimeNew;
       beep1();
