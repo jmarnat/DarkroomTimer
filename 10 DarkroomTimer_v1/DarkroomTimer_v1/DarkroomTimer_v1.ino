@@ -145,8 +145,8 @@ int lightCurr, lightLast;
 
 
 //
-float varSelectedTime;
-float timerTime;
+int varSelectedTime;
+int timerTime;
 int varSelectedTimeDecimals;
 
 
@@ -163,7 +163,7 @@ bool settings_beep2 = true;
 bool settings_beep3 = true;
 bool settings_beep4 = true;
 
-float timeStep = 0.1;
+int timeStep = 100;
 
 void setup() {
   pinMode(PIN_ENCODER_BUT, INPUT);
@@ -188,7 +188,7 @@ void setup() {
 
 
   // display
-  varSelectedTime = 2.5;
+  varSelectedTime = 2500;
   varSelectedTimeDecimals = 1;
 
   display_left.setBrightness(settings_brightness);
@@ -317,11 +317,11 @@ void setMode(int newMode) {
 
 
 void displayRemainingTime() {
-  displayDigits(1, timerTime, varSelectedTimeDecimals);
+  displayDigits(1, (float) timerTime / 1000, varSelectedTimeDecimals);
 }
 
 void displaySelectedTime() {
-  displayDigits(1, varSelectedTime, varSelectedTimeDecimals);
+  displayDigits(1, (float) varSelectedTime / 1000, varSelectedTimeDecimals);
 }
 
 void displayDigits(int side, float number, int decimals) {
@@ -394,7 +394,7 @@ void actionRotary(int dir) {
   // dir = +1 (clockwise) / -1 (trigo)
 
   if (mode == MODE_SETUP) {
-    float varSelectedTimeNew = varSelectedTime + 1 * dir * timeStep;
+    float varSelectedTimeNew = varSelectedTime + dir * timeStep;
     if (varSelectedTimeNew > 0) {
       varSelectedTime = varSelectedTimeNew;
       beep1();
@@ -674,10 +674,10 @@ void loop() {
     currMillis = millis();
     // only check every 0.1s
     if (currMillis > (lastMillis + 100)) {
-      if ((((int) (timerTime * 10) % 10) == 0) & (timerTime > 0)) {
+      if ((((timerTime) % 1000) == 0) & (timerTime > 0)) {
         beep2();
       }
-      timerTime -= 0.1;
+      timerTime -= 100;
       lastMillis = currMillis;
       displayRemainingTime();
     }
