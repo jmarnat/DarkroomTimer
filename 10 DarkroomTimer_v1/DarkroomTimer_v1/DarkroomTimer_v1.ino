@@ -138,15 +138,16 @@ int rotButLast, rotButCurr;
 
 int rotClkCurr, rotDatCurr;
 int rotClkLast, rotDatLast;
-int rotPosition;
+signed long rotPosition;
 // int rotValCurr, rotValLast;
 
 int lightCurr, lightLast;
 
 
 //
-int varSelectedTime;
-int timerTime;
+unsigned long varSelectedTime;
+signed long varSelectedTimeNew;
+unsigned long timerTime;
 int varSelectedTimeDecimals;
 
 
@@ -155,6 +156,8 @@ int mode = MODE_SETUP;
 //int currentMode =
 int submode;
 unsigned long currMillis, lastMillis;
+
+unsigned long currRotMillis, lastRotMillis;
 
 byte settings_brightness = 1;
 bool settings_beeps_startup = true;
@@ -190,6 +193,9 @@ void setup() {
   // display
   varSelectedTime = 2500;
   varSelectedTimeDecimals = 1;
+
+
+  lastRotMillis = millis();
 
   display_left.setBrightness(settings_brightness);
   setMode(MODE_SETUP);
@@ -390,11 +396,11 @@ void displayBrightness() {
 
 
 int selected_menu = 0;
-void actionRotary(int dir) {
+void actionRotary(int dir, int rotStep) {
   // dir = +1 (clockwise) / -1 (trigo)
 
   if (mode == MODE_SETUP) {
-    float varSelectedTimeNew = varSelectedTime + dir * timeStep;
+    varSelectedTimeNew = varSelectedTime + dir * rotStep * timeStep;
     if (varSelectedTimeNew > 0) {
       varSelectedTime = varSelectedTimeNew;
       beep1();
@@ -608,6 +614,11 @@ void actionBigRedButton(boolean pushed) {
   }
 }
 
+int sign(float value) {
+  if (value < 0) return -1;
+  if (value > 0) return +1;
+  return 0;
+}
 
 
 void loop() {
@@ -651,18 +662,28 @@ void loop() {
   if (rotClkCurr != rotClkLast) {
     if (rotClkCurr != rotDatCurr) {
       rotPosition ++;
+      currRotMillis = millis();
     } else {
       rotPosition --;
+      currRotMillis = millis();
     }
     Serial.print("rotPosition: ");
     Serial.println(rotPosition);
 
-    if (rotPosition >= 2) {
-      rotPosition -= 2;
-      actionRotary(1);
-    } else if (rotPosition <= -2) {
-      rotPosition += 2;
-      actionRotary(-1);
+    if (abs(rotPosition) >= 2) {
+      int dir = sign(rotPosition);
+      int rotStep = ((currRotMillis - lastRotMillis) < 50) ? 10 : 1;
+      
+      rotPosition -= 2 * dir;
+      actionRotary(dir, rotStep);
+//      if (rotPosition > 0) {
+//        rotPosition -= 2;
+//        actionRotary(1);
+//      } else if (rotPosition < 0) {
+//        rotPosition += 2;
+//        actionRotary(-1);
+//      }
+        lastRotMillis = currRotMillis;
     }
     rotClkLast = rotClkCurr;
 
